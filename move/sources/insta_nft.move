@@ -1,4 +1,8 @@
 module insta::insta_nft {
+    #[test_only]
+    friend insta::insta_nftTests;
+    
+    friend insta::insta_management;
     use sui::url::{Self, Url};
     use std::string;
     use sui::object::{Self, ID, UID};
@@ -28,13 +32,13 @@ module insta::insta_nft {
     }
 
     /// Create a new insta_nft
-    public entry fun mint(
+    public(friend) fun mint(
         name: vector<u8>,
         description: vector<u8>,
         url: vector<u8>,
+        creator: address,
         ctx: &mut TxContext
     ) {
-        let creator = tx_context::sender(ctx);
         let nft = InstaNFT {
             id: object::new(ctx),
             name: string::utf8(name),
@@ -52,7 +56,7 @@ module insta::insta_nft {
     }
 
     /// Update the `description` of `nft` to `new_description`
-    public entry fun update_description(
+    public(friend) fun update_description(
         nft: &mut InstaNFT,
         new_description: vector<u8>,
         ctx: &mut TxContext
@@ -61,7 +65,7 @@ module insta::insta_nft {
         nft.description = string::utf8(new_description);
     }
     /// Update the `description` of `nft` to `new_description`
-    public entry fun update_name(
+    public(friend) fun update_name(
         nft: &mut InstaNFT,
         new_description: vector<u8>,
         ctx: &mut TxContext
@@ -71,7 +75,7 @@ module insta::insta_nft {
     }
 
     /// Permanently delete `nft`
-    public entry fun burn(nft: InstaNFT) {
+    public(friend) fun burn(nft: InstaNFT) {
         let InstaNFT { id, name: _, description: _, url: _, creator: _ } = nft;
         object::delete(id)
     }
@@ -106,7 +110,7 @@ module insta::insta_nftTests {
         // create the NFT
         let scenario = ts::begin(addr1);
         {
-            insta_nft::mint(b"test", b"a test", b"https://www.sui.io", ts::ctx(&mut scenario))
+            insta_nft::mint(b"test", b"a test", b"https://www.sui.io", addr1, ts::ctx(&mut scenario))
         };
         ts::next_tx(&mut scenario, addr1);
         {
