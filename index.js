@@ -51,15 +51,6 @@ bot.on("photo", async (msg) => {
     image: photoLink,
     type: url,
   });
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "View on Explorer", callback_data: "option1" }],
-        [{ text: "View on MoveBlue", callback_data: "option2" }],
-      ],
-    },
-    reply_to_message_id: msg.message_id,
-  };
   let signer = await getSigner("testnet");
 
   let nftName = "Insta NFT";
@@ -67,8 +58,11 @@ bot.on("photo", async (msg) => {
   let nftURL = res.data.link;
 
   const tx = new TransactionBlock();
+  let SignerCap = await signer.provider.getObject({
+    id: "0x78d58c72e1a0cbe74b08ee7993f031aa678b5515879ddc7699a2cffbaeeb86da",
+  });
   tx.moveCall({
-    target: `${InstaPackage["testnet"]}::insta_management`,
+    target: `${InstaPackage["testnet"]}::insta_management::mint`,
     // typeArguments: [coin_type],
     arguments: [
       tx.object(
@@ -83,8 +77,8 @@ bot.on("photo", async (msg) => {
         Inputs.ObjectRef({
           objectId:
             "0x78d58c72e1a0cbe74b08ee7993f031aa678b5515879ddc7699a2cffbaeeb86da",
-          digest: "BrDugekLQLMGpFnE8HDFdo4CiGX1vcrnpE7zKfk87ghy",
-          version: 650476,
+          digest: SignerCap.data.digest,
+          version: Number(SignerCap.data.version),
         })
       ),
       tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
@@ -95,17 +89,29 @@ bot.on("photo", async (msg) => {
       tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
     ],
   });
-  console.log(tx);
   const resData = await signer.signAndExecuteTransactionBlock({
     transactionBlock: tx,
+    options: {
+      showEffects: true,
+      showBalanceChanges: true,
+    },
   });
-  console.log("resData", resData);
-  // name: vector<u8>,
-  //       description: vector<u8>,
-  //       url: vector<u8>,
-  //       ctx: &mut TxContext
-  signer.signAndExecuteTransactionBlock;
-  // bot.sendMessage(msg.chat.id, msg.message_id, "NFT Minted", options);
+  let nftId = resData.effects.created[0].reference.objectId;
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "View on Explorer",
+            url: `https://suiexplorer.com/object/${nftId}?network=testnet`,
+          },
+        ],
+        // [{ text: "View on MoveBlue", url: "option2" }],
+      ],
+    },
+    reply_to_message_id: msg.message_id,
+  };
   bot.sendMessage(msg.chat.id, "NFT Minted!", options);
 });
 
