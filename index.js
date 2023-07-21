@@ -42,8 +42,11 @@ app.listen(port, () => {
 
 let walletKit = require("@mysten/wallet-kit");
 let { getSuiProvider } = require("./utils/getSuiProvider");
+let { getSignerCap } = require("./utils/getSignerCap");
+let { getInstaConfig } = require("./utils/getInstaConfig");
 const { getSigner } = require("./utils/signer");
 const { InstaPackage, a } = require("./projectConfig");
+const { getViewerReplyMarkup } = require("./utils/getViewerReplyMarkup");
 bot.on("photo", async (msg) => {
   let photo = msg.photo[msg.photo.length - 1];
   let photoLink = await bot.getFileLink(photo.file_id);
@@ -52,7 +55,8 @@ bot.on("photo", async (msg) => {
     type: url,
   });
 
-  let signer = await getSigner("testnet");
+  network = "testnet";
+  let signer = await getSigner(network);
 
   let nftName = "Insta NFT";
   let nftDescription = "";
@@ -60,30 +64,14 @@ bot.on("photo", async (msg) => {
 
   const tx = new TransactionBlock();
 
-  let SignerCap = await signer.provider.getObject({
-    id: "0x493a715eb16818fdb689bdd4de614533c00e7c7d403528a841f49b8f1f0d6efa",
-  });
   // print hello
 
   tx.moveCall({
-    target: `${InstaPackage["testnet"]}::insta_management::mint`,
+    target: `${InstaPackage[network]}::insta_management::mint`,
     // typeArguments: [coin_type],
     arguments: [
-      tx.object(
-        Inputs.SharedObjectRef({
-          objectId:
-            "0x9ca1f0a4605598afe615f31926df68b2a35dbf346465633e9d91843249156ea6",
-          mutable: false,
-          initialSharedVersion: 650486,
-        })
-      ),
-      tx.object(
-        Inputs.ObjectRef({
-          objectId: SignerCap.data.objectId,
-          digest: SignerCap.data.digest,
-          version: Number(SignerCap.data.version),
-        })
-      ),
+      tx.object(await getInstaConfig(network)),
+      tx.object(await getSignerCap(network)),
       tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
       tx.pure(
         Array.from(new TextEncoder().encode(nftDescription)),
@@ -103,23 +91,7 @@ bot.on("photo", async (msg) => {
   let nftId = resData.effects.created[0].reference.objectId;
 
   const options = {
-    reply_markup: {
-      inline_keyboard: [
-        // [
-        //   {
-        //     text: "View on Explorer",
-        //     url: `https://suiexplorer.com/object/${nftId}?network=testnet`,
-        //   },
-        // ],
-        [
-          {
-            text: "View on SuiVision",
-            url: `https://testnet.suivision.xyz/nft/object/${nftId}`,
-          },
-        ],
-        // [{ text: "View on MoveBlue", url: "option2" }],
-      ],
-    },
+    reply_markup: getViewerReplyMarkup(nftId, network),
     reply_to_message_id: msg.message_id,
   };
   bot.sendMessage(msg.chat.id, "NFT Minted!", options);
