@@ -51,6 +51,7 @@ bot.on("photo", async (msg) => {
     image: photoLink,
     type: url,
   });
+
   let signer = await getSigner("testnet");
 
   let nftName = "Insta NFT";
@@ -58,9 +59,12 @@ bot.on("photo", async (msg) => {
   let nftURL = res.data.link;
 
   const tx = new TransactionBlock();
+
   let SignerCap = await signer.provider.getObject({
-    id: "0x78d58c72e1a0cbe74b08ee7993f031aa678b5515879ddc7699a2cffbaeeb86da",
+    id: "0x493a715eb16818fdb689bdd4de614533c00e7c7d403528a841f49b8f1f0d6efa",
   });
+  // print hello
+
   tx.moveCall({
     target: `${InstaPackage["testnet"]}::insta_management::mint`,
     // typeArguments: [coin_type],
@@ -68,15 +72,14 @@ bot.on("photo", async (msg) => {
       tx.object(
         Inputs.SharedObjectRef({
           objectId:
-            "0x995f855ae21cc29c4e4327a68569d98f20c46177edf446d6705353dba7e6f1a4",
+            "0x9ca1f0a4605598afe615f31926df68b2a35dbf346465633e9d91843249156ea6",
           mutable: false,
-          initialSharedVersion: 650474,
+          initialSharedVersion: 650486,
         })
       ),
       tx.object(
         Inputs.ObjectRef({
-          objectId:
-            "0x78d58c72e1a0cbe74b08ee7993f031aa678b5515879ddc7699a2cffbaeeb86da",
+          objectId: SignerCap.data.objectId,
           digest: SignerCap.data.digest,
           version: Number(SignerCap.data.version),
         })
@@ -89,6 +92,7 @@ bot.on("photo", async (msg) => {
       tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
     ],
   });
+
   const resData = await signer.signAndExecuteTransactionBlock({
     transactionBlock: tx,
     options: {
@@ -101,10 +105,16 @@ bot.on("photo", async (msg) => {
   const options = {
     reply_markup: {
       inline_keyboard: [
+        // [
+        //   {
+        //     text: "View on Explorer",
+        //     url: `https://suiexplorer.com/object/${nftId}?network=testnet`,
+        //   },
+        // ],
         [
           {
-            text: "View on Explorer",
-            url: `https://suiexplorer.com/object/${nftId}?network=testnet`,
+            text: "View on SuiVision",
+            url: `https://testnet.suivision.xyz/nft/object/${nftId}`,
           },
         ],
         // [{ text: "View on MoveBlue", url: "option2" }],
@@ -119,5 +129,9 @@ bot.on("photo", async (msg) => {
 // import {} from "./utils/signer";
 bot.on("text", (msg) => {
   console.log(msg);
-  bot.onReplyToMessage(msg.chat.id, msg.message_id, "I am alive!");
+  bot.sendMessage(
+    msg.chat.id,
+    `Welcome to InstaSui 🤖\nSend me a photo, and I will turn it into NFT on Sui Network.`
+  );
+  bot.sendPhoto(msg.chat.id, "https://i.imgur.com/1uTIVtl.jpg");
 });

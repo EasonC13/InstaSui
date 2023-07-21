@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 let { JsonRpcProvider, Connection } = require("@mysten/sui.js");
+let dotenv = require("dotenv");
+dotenv.config();
 
 let getSuiProvider = (network = "mainnet") => {
   if (network == "mainnet") {
     let connection = new Connection({
-      fullnode:
-        "https://sui-mainnet.blockvision.org/v1/2SjMglFHZy5G6RUaIEm4aLLtHGP",
+      fullnode: process.env.MAINNET_RPC,
     });
     return new JsonRpcProvider(connection);
   } else if (network == "testnet") {
     let connection = new Connection({
-      fullnode:
-        "https://sui-testnet.blockvision.org/v1/2SnBwJqW1RLEao9yzPo8oB7fKhi",
+      fullnode: process.env.TESTNET_RPC,
     });
     return new JsonRpcProvider(connection);
   } else if (network == "devnet") {

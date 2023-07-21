@@ -1,6 +1,6 @@
 let InstaPackage = {};
 InstaPackage["testnet"] =
-  "0xd6e4885878b11fb0fda3124b8d94357922016fb0b033a487e0c0a88497b4f847";
+  "0xdd77fbfadddf636c01d954c4c58a9261635934b50aea5e1fa6da9ff648ae0d4e";
 
 let a = {};
 
