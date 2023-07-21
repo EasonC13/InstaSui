@@ -5,6 +5,9 @@ module insta::insta_nft {
     friend insta::insta_management;
     use sui::url::{Self, Url};
     use std::string;
+    use std::string::utf8;
+    use sui::package;
+    use sui::display;
     use sui::object::{Self, ID, UID};
     use sui::event;
     use sui::transfer;
@@ -18,7 +21,7 @@ module insta::insta_nft {
         /// Description of the token
         description: string::String,
         /// URL for the token
-        url: Url,
+        img_url: Url,
         creator: address,
     }
 
@@ -30,12 +33,47 @@ module insta::insta_nft {
         // The name of the NFT
         name: string::String,
     }
+    struct INSTA_NFT has drop {}
+    const NAME: vector<u8> = b"Insta NFT";
+    const IMAGE_URL: vector<u8> = b"https://i.imgur.com/92pLUId.jpg";
+    const DESCRIPTION: vector<u8> = b"Easily Create Sui NFT by InstaSui Chatbot";
+    const OFFICIAL_URL: vector<u8> = b"https://t.me/InstaSuiBot";
+    const CREATOR: vector<u8> = b"@InstaSuiBot";
+
+    fun init(otw: INSTA_NFT, ctx: &mut TxContext) {
+        let keys = vector[
+            utf8(b"name"),
+            utf8(b"image_url"),
+            utf8(b"description"),
+            utf8(b"project_url"),
+            utf8(b"creator"),
+        ];
+
+        let values = vector[
+            utf8(NAME),
+            utf8(IMAGE_URL),
+            utf8(DESCRIPTION),
+            utf8(OFFICIAL_URL),
+            utf8(CREATOR),
+        ];
+
+        let publisher = package::claim(otw, ctx);
+        let display = display::new_with_fields<InstaNFT>(
+            &publisher, keys, values, ctx
+        );
+
+        display::update_version(&mut display);
+
+        let deployer = tx_context::sender(ctx);
+        transfer::public_transfer(publisher, deployer);
+        transfer::public_transfer(display, deployer);
+    }
 
     /// Create a new insta_nft
     public(friend) fun mint(
         name: vector<u8>,
         description: vector<u8>,
-        url: vector<u8>,
+        img_url: vector<u8>,
         creator: address,
         ctx: &mut TxContext
     ) {
@@ -43,7 +81,7 @@ module insta::insta_nft {
             id: object::new(ctx),
             name: string::utf8(name),
             description: string::utf8(description),
-            url: url::new_unsafe_from_bytes(url),
+            img_url: url::new_unsafe_from_bytes(img_url),
             creator: creator
         };
         
@@ -76,7 +114,7 @@ module insta::insta_nft {
 
     /// Permanently delete `nft`
     public(friend) fun burn(nft: InstaNFT) {
-        let InstaNFT { id, name: _, description: _, url: _, creator: _ } = nft;
+        let InstaNFT { id, name: _, description: _, img_url: _, creator: _ } = nft;
         object::delete(id)
     }
 
@@ -91,8 +129,8 @@ module insta::insta_nft {
     }
 
     /// Get the NFT's `url`
-    public fun url(nft: &InstaNFT): &Url {
-        &nft.url
+    public fun img_url(nft: &InstaNFT): &Url {
+        &nft.img_url
     }
 }
 

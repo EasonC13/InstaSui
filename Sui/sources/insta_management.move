@@ -69,7 +69,7 @@ module insta::insta_management {
         _signerCap: &SignerCap, 
         name: vector<u8>,
         description: vector<u8>,
-        url: vector<u8>,
+        img_url: vector<u8>,
         ctx: &mut TxContext
     ) {
         assert!(_signerCap.version == instaConfig.version, 0);
@@ -80,29 +80,24 @@ module insta::insta_management {
         insta_nft::mint(
             name,
             description,
-            url,
+            img_url,
             instaConfig.creator,
             ctx
         );
         //TODO: process payment
         
     }
-    public entry fun just_beta_mint(
+    public entry fun mint_test(
         name: vector<u8>,
         description: vector<u8>,
-        url: vector<u8>,
+        img_url: vector<u8>,
         ctx: &mut TxContext
     ) {
-        assert!(_signerCap.version == instaConfig.version, 0);
-        assert!(instaConfig.is_freezed == false, 0);
-        if(instaConfig.is_request_withdraw){
-            // TODO: Process Withdraw
-        };
         insta_nft::mint(
             name,
             description,
-            url,
-            instaConfig.creator,
+            img_url,
+            tx_context::sender(ctx),
             ctx
         );
         //TODO: process payment
