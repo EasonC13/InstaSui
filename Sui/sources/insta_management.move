@@ -87,20 +87,16 @@ module insta::insta_management {
         //TODO: process payment
         
     }
-    public entry fun mint_test(
-        name: vector<u8>,
-        description: vector<u8>,
-        img_url: vector<u8>,
-        ctx: &mut TxContext
-    ) {
-        insta_nft::mint(
-            name,
-            description,
-            img_url,
-            tx_context::sender(ctx),
-            ctx
-        );
-        //TODO: process payment
-        
-    }
+    // public entry fun mint_test(
+    //     ctx: &mut TxContext
+    // ) {
+    //     insta_nft::mint(
+    //         b"Insta NFT",
+    //         b"Insta NFT",
+    //         b"https://thispersondoesnotexist.com",
+    //         tx_context::sender(ctx),
+    //         ctx
+    //     );
+    //     //TODO: process payment
+    // }
 }

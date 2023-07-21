@@ -34,9 +34,9 @@ module insta::insta_nft {
         name: string::String,
     }
     struct INSTA_NFT has drop {}
-    const NAME: vector<u8> = b"Insta NFT";
-    const IMAGE_URL: vector<u8> = b"https://i.imgur.com/92pLUId.jpg";
-    const DESCRIPTION: vector<u8> = b"Easily Create Sui NFT by InstaSui Chatbot";
+    const NAME: vector<u8> = b"{name}";
+    const IMAGE_URL: vector<u8> = b"{img_url}";
+    const DESCRIPTION: vector<u8> = b"{description}";
     const OFFICIAL_URL: vector<u8> = b"https://t.me/InstaSuiBot";
     const CREATOR: vector<u8> = b"@InstaSuiBot";
 
