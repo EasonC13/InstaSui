@@ -48,53 +48,55 @@ const { getSigner } = require("./utils/signer");
 const { InstaPackage, a } = require("./projectConfig");
 const { getViewerReplyMarkup } = require("./utils/getViewerReplyMarkup");
 bot.on("photo", async (msg) => {
-  let photo = msg.photo[msg.photo.length - 1];
-  let photoLink = await bot.getFileLink(photo.file_id);
-  let res = await client.upload({
-    image: photoLink,
-    type: url,
-  });
+  try {
+    let photo = msg.photo[msg.photo.length - 1];
+    let photoLink = await bot.getFileLink(photo.file_id);
+    let res = await client.upload({
+      image: photoLink,
+      type: url,
+    });
 
-  network = "testnet";
-  let signer = await getSigner(network);
+    network = "mainnet";
+    let signer = await getSigner(network);
 
-  let nftName = "Insta NFT";
-  let nftDescription = "";
-  let nftURL = res.data.link;
+    let nftName = "Insta NFT Beta";
+    let nftDescription = "Mint NFT from https://t.me/InstaSuiBot";
+    let nftURL = res.data.link;
 
-  const tx = new TransactionBlock();
+    const tx = new TransactionBlock();
 
-  // print hello
+    // print hello
 
-  tx.moveCall({
-    target: `${InstaPackage[network]}::insta_management::mint`,
-    // typeArguments: [coin_type],
-    arguments: [
-      tx.object(await getInstaConfig(network)),
-      tx.object(await getSignerCap(network)),
-      tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
-      tx.pure(
-        Array.from(new TextEncoder().encode(nftDescription)),
-        "vector<u8>"
-      ),
-      tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
-    ],
-  });
+    tx.moveCall({
+      target: `${InstaPackage[network]}::insta_management::mint`,
+      // typeArguments: [coin_type],
+      arguments: [
+        tx.object(await getInstaConfig(network)),
+        tx.object(await getSignerCap(network)),
+        tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
+        tx.pure(
+          Array.from(new TextEncoder().encode(nftDescription)),
+          "vector<u8>"
+        ),
+        tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
+      ],
+    });
 
-  const resData = await signer.signAndExecuteTransactionBlock({
-    transactionBlock: tx,
-    options: {
-      showEffects: true,
-      showBalanceChanges: true,
-    },
-  });
-  let nftId = resData.effects.created[0].reference.objectId;
+    const resData = await signer.signAndExecuteTransactionBlock({
+      transactionBlock: tx,
+      options: {
+        showEffects: true,
+        showBalanceChanges: true,
+      },
+    });
+    let nftId = resData.effects.created[0].reference.objectId;
 
-  const options = {
-    reply_markup: getViewerReplyMarkup(nftId, network),
-    reply_to_message_id: msg.message_id,
-  };
-  bot.sendMessage(msg.chat.id, "NFT Minted!", options);
+    const options = {
+      reply_markup: getViewerReplyMarkup(nftId, network),
+      reply_to_message_id: msg.message_id,
+    };
+    bot.sendMessage(msg.chat.id, "NFT Minted!", options);
+  } catch (e) {}
 });
 
 // Just to ping!
