@@ -47,56 +47,74 @@ let { getInstaConfig } = require("./utils/getInstaConfig");
 const { getSigner } = require("./utils/signer");
 const { InstaPackage, a } = require("./projectConfig");
 const { getViewerReplyMarkup } = require("./utils/getViewerReplyMarkup");
+let { uploadToIPFS } = require("./utils/ipfsUpload");
 bot.on("photo", async (msg) => {
   try {
-    let photo = msg.photo[msg.photo.length - 1];
-    let photoLink = await bot.getFileLink(photo.file_id);
-    let res = await client.upload({
-      image: photoLink,
-      type: url,
-    });
+    let photoUrl = await bot.getFileLink(msg.photo[0].file_id);
 
-    network = "mainnet";
+    let res = await uploadToIPFS(photoUrl);
+    console.log(res);
+
+    network = "testnet";
     let signer = await getSigner(network);
 
     let nftName = "Insta NFT Beta";
     let nftDescription = "Mint NFT from https://t.me/InstaSuiBot";
     let nftURL = res.data.link;
+    console.log(res);
+    return;
 
-    const tx = new TransactionBlock();
+    try {
+      const tx = new TransactionBlock();
 
-    // print hello
+      // print hello
 
-    tx.moveCall({
-      target: `${InstaPackage[network]}::insta_management::mint`,
-      // typeArguments: [coin_type],
-      arguments: [
-        tx.object(await getInstaConfig(network)),
-        tx.object(await getSignerCap(network)),
-        tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
-        tx.pure(
-          Array.from(new TextEncoder().encode(nftDescription)),
-          "vector<u8>"
-        ),
-        tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
-      ],
-    });
+      tx.moveCall({
+        target: `${InstaPackage[network]}::insta_management::mint`,
+        // typeArguments: [coin_type],
+        arguments: [
+          tx.object(await getInstaConfig(network)),
+          tx.object(await getSignerCap(network)),
+          tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
+          tx.pure(
+            Array.from(new TextEncoder().encode(nftDescription)),
+            "vector<u8>"
+          ),
+          tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
+        ],
+      });
+      const resData = await signer.signAndExecuteTransactionBlock({
+        transactionBlock: tx,
+        options: {
+          showEffects: true,
+          showBalanceChanges: true,
+        },
+      });
+      console.log(resData);
 
-    const resData = await signer.signAndExecuteTransactionBlock({
-      transactionBlock: tx,
-      options: {
-        showEffects: true,
-        showBalanceChanges: true,
-      },
-    });
-    let nftId = resData.effects.created[0].reference.objectId;
+      let nftId = resData.effects.created[0].reference.objectId;
 
-    const options = {
-      reply_markup: getViewerReplyMarkup(nftId, network),
-      reply_to_message_id: msg.message_id,
-    };
-    bot.sendMessage(msg.chat.id, "NFT Minted!", options);
-  } catch (e) {}
+      const options = {
+        reply_markup: getViewerReplyMarkup(nftId, network),
+        reply_to_message_id: msg.message_id,
+      };
+      bot.sendMessage(msg.chat.id, "NFT Minted!", options);
+    } catch (e) {
+      if (
+        e.message.includes(
+          "Failed to sign transaction by a quorum of validators because of locked objects"
+        )
+      ) {
+        let random_time = Math.floor(Math.random() * 3000);
+        await sleep(random_time);
+        throw e;
+      } else {
+        throw e;
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 // Just to ping!
@@ -109,3 +127,26 @@ bot.on("text", (msg) => {
   );
   bot.sendPhoto(msg.chat.id, "https://i.imgur.com/1uTIVtl.jpg");
 });
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function streamToBuffer(readableStream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+
+    readableStream.on("data", (chunk) => {
+      chunks.push(chunk);
+    });
+
+    readableStream.on("end", () => {
+      const buffer = Buffer.concat(chunks);
+      resolve(buffer);
+    });
+
+    readableStream.on("error", (error) => {
+      reject(error);
+    });
+  });
+}
