@@ -2,7 +2,6 @@ module insta::insta_nft {
     #[test_only]
     friend insta::insta_nftTests;
     
-    friend insta::insta_management;
     use sui::url::{Self, Url};
     use std::string;
     use std::string::utf8;
@@ -34,6 +33,7 @@ module insta::insta_nft {
     }
     struct INSTA_NFT has drop {}
     const NAME: vector<u8> = b"{name}";
+    const VERSION: vector<u8> = b"Beta";
     const IMAGE_URL: vector<u8> = b"{img_url}";
     const DESCRIPTION: vector<u8> = b"{description}";
     const OFFICIAL_URL: vector<u8> = b"https://t.me/InstaSuiBot";
@@ -46,6 +46,7 @@ module insta::insta_nft {
             utf8(b"description"),
             utf8(b"project_url"),
             utf8(b"creator"),
+            utf8(b"version"),
         ];
 
         let values = vector[
@@ -54,6 +55,7 @@ module insta::insta_nft {
             utf8(DESCRIPTION),
             utf8(OFFICIAL_URL),
             utf8(CREATOR),
+            utf8(VERSION),
         ];
 
         let publisher = package::claim(otw, ctx);
@@ -69,7 +71,7 @@ module insta::insta_nft {
     }
 
     /// Create a new insta_nft
-    public(friend) fun mint(
+    public entry fun mint(
         name: vector<u8>,
         description: vector<u8>,
         img_url: vector<u8>,
@@ -93,7 +95,7 @@ module insta::insta_nft {
     }
 
     /// Update the `description` of `nft` to `new_description`
-    public(friend) fun update_description(
+    public entry fun update_description(
         nft: &mut InstaNFT,
         new_description: vector<u8>,
         ctx: &mut TxContext
@@ -102,7 +104,7 @@ module insta::insta_nft {
         nft.description = string::utf8(new_description);
     }
     /// Update the `description` of `nft` to `new_description`
-    public(friend) fun update_name(
+    public entry fun update_name(
         nft: &mut InstaNFT,
         new_description: vector<u8>,
         ctx: &mut TxContext
@@ -112,7 +114,7 @@ module insta::insta_nft {
     }
 
     /// Permanently delete `nft`
-    public(friend) fun burn(nft: InstaNFT) {
+    public entry fun burn(nft: InstaNFT) {
         let InstaNFT { id, name: _, description: _, img_url: _, creator: _ } = nft;
         object::delete(id)
     }
