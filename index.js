@@ -126,7 +126,17 @@ bot.on("photo", async (msg) => {
     let SuiPrice = await (
       await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SUIUSDT")
     ).json();
-    gasFee / SuiPrice.price;
+    let DisplayJPY;
+    try {
+      let SuiPriceInJPY = (
+        await (
+          await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=sui&vs_currencies=JPY"
+          )
+        ).json()
+      ).sui.jpy;
+      DisplayJPY = `(~=${gasFee * SuiPriceInJPY} JPY)`;
+    } catch (e) {}
 
     const options = {
       reply_markup: getViewerReplyMarkup(nftId, network),
@@ -136,9 +146,16 @@ bot.on("photo", async (msg) => {
       msg.chat.id,
       `NFT Minted!
       The gas fee is ${gasFee.toFixed(4)} Sui
-      (~${(gasFee * SuiPrice.price).toFixed(4)} USD)`.replace(/  +/g, ""),
+      (~=${(gasFee * SuiPrice.price).toFixed(4)} USD)
+      ${DisplayJPY}`.replace(/  +/g, ""),
       options
     );
+    if (!user.address) {
+      bot.sendMessage(
+        msg.chat.id,
+        `Not Yet Set Address. Set your Sui Address by /setaddress`
+      );
+    }
   } catch (e) {
     console.log(e);
   }
