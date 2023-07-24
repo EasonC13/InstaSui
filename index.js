@@ -59,6 +59,7 @@ const ipfsClient = create(process.env.IPFS_URL); // the default API address http
 
 bot.on("photo", async (msg) => {
   try {
+    bot.sendChatAction(msg.chat.id, "typing");
     let user = await getUser(msg);
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
@@ -69,6 +70,8 @@ bot.on("photo", async (msg) => {
       image: photoLink,
       type: "url",
     });
+    bot.sendChatAction(msg.chat.id, "typing");
+
     let nftURL = res.data.link;
 
     let network = user.network || process.env.NETWORK || "testnet";
@@ -114,6 +117,7 @@ bot.on("photo", async (msg) => {
       ],
     });
 
+    bot.sendChatAction(msg.chat.id, "typing");
     const resData = await signer.signAndExecuteTransactionBlock({
       transactionBlock: tx,
       options: {
@@ -121,6 +125,7 @@ bot.on("photo", async (msg) => {
         showBalanceChanges: true,
       },
     });
+    bot.sendChatAction(msg.chat.id, "typing");
     let nftId = resData.effects.created[0].reference.objectId;
     let gasFee = Math.abs(Number(resData.balanceChanges[0].amount) / 10 ** 9);
     let SuiPrice = await (
