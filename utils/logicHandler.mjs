@@ -1,6 +1,7 @@
 import { getDatabase } from "./db.mjs";
 import { bot } from "./bot.mjs";
 import { getSigner } from "./signer.mjs";
+import { getUser } from "./getUser.mjs";
 export async function logicHandler(msg) {
   msg.from.id;
   let user = await getUser(msg);
@@ -10,34 +11,37 @@ export async function logicHandler(msg) {
     await setAddress(signer, msg, user);
     return true;
   }
-  if (msg.text.toLowerCase().startsWith("/setnetwork")) {
-    console.log("set network");
-    msg.text = msg.text.toLowerCase().replace("/network", "").trim();
-    if (msg.text == "testnet" || msg.text == "mainnet") {
+  if (
+    msg.text.toLowerCase().startsWith("/mainnet") ||
+    msg.text.toLowerCase().startsWith("/testnet")
+  ) {
+    let network = msg.text.toLowerCase().replace("/", "");
+    if (["testnet", "mainnet"].includes(network)) {
       let db = await getDatabase();
       let userCol = db.collection("telegramUsers");
-      userCol.updateOne(
+      let res = await userCol.updateOne(
         {
           _id: user._id,
         },
         {
           $set: {
-            network: msg.text.toLowerCase(),
+            network: network,
           },
         }
       );
+      console.log(res);
 
       const options = {
         reply_to_message_id: msg.message_id,
       };
-      bot.sendMessage(msg.chat.id, `Network set to ${msg.text}`, options);
+      bot.sendMessage(msg.chat.id, `Network set to ${network}`, options);
     } else {
       const options = {
         reply_to_message_id: msg.message_id,
       };
       bot.sendMessage(
         msg.chat.id,
-        `Invalid Network. We support mainnet and testnet`,
+        `Invalid Network. We support /mainnet and /testnet`,
         options
       );
     }
@@ -88,21 +92,4 @@ async function setAddress(signer, msg, user) {
       options
     );
   }
-}
-
-async function getUser(msg) {
-  let db = await getDatabase();
-  let userCol = db.collection("telegramUsers");
-  let user = await userCol.findOne({ userId: msg.from.id });
-  if (!user) {
-    user = {
-      userId: msg.from.id,
-      status: "init",
-      address: "",
-      network: process.env.NETWORK,
-    };
-    await userCol.insertOne(user);
-    user = await userCol.findOne({ userId: msg.from.id });
-  }
-  return user;
 }

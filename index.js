@@ -36,7 +36,8 @@ app.get(`/hello`, (req, res) => {
 app.listen(port, async () => {
   console.log(`Express server is listening on ${port}`);
   const cmomands = [
-    { command: "setnetwork", description: "Select Sui Network" },
+    { command: "mainnet", description: "Mint NFT to Mainnet" },
+    { command: "testnet", description: "Mint NFT to Testnet (Free)" },
     { command: "setaddress", description: "Change Address" },
   ];
   bot.setMyCommands(cmomands).then((resp) => {});
@@ -52,11 +53,13 @@ import { getSigner } from "./utils/signer.mjs";
 import { InstaPackage } from "./projectConfig.mjs";
 import { getViewerReplyMarkup } from "./utils/getViewerReplyMarkup.mjs";
 import { create, urlSource } from "ipfs-http-client";
+import { getUser } from "./utils/getUser.mjs";
 
 const ipfsClient = create(process.env.IPFS_URL); // the default API address http://localhost:5001
 
 bot.on("photo", async (msg) => {
   try {
+    let user = await getUser(msg);
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
     // const file = await ipfsClient.add(urlSource(photoLink));
@@ -68,7 +71,7 @@ bot.on("photo", async (msg) => {
     });
     let nftURL = res.data.link;
 
-    let network = process.env.NETWORK || "testnet";
+    let network = user.network || process.env.NETWORK || "testnet";
     let signer = await getSigner(network);
 
     let nftName = "Insta NFT Beta";
@@ -80,20 +83,37 @@ bot.on("photo", async (msg) => {
 
     // print hello
 
+    {
+      ("");
+      // tx.moveCall({
+      //   target: `${InstaPackage[network]}::insta_management::mint`,
+      //   // typeArguments: [coin_type],
+      //   arguments: [
+      //     tx.object(await getInstaConfig(network)),
+      //     tx.object(await getSignerCap(network)),
+      //     tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
+      //     tx.pure(
+      //       Array.from(new TextEncoder().encode(nftDescription)),
+      //       "vector<u8>"
+      //     ),
+      //     tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
+      //   ],
+      // });
+    }
     tx.moveCall({
-      target: `${InstaPackage[network]}::insta_management::mint`,
+      target: `${InstaPackage[network]}::insta_nft::mint`,
       // typeArguments: [coin_type],
       arguments: [
-        tx.object(await getInstaConfig(network)),
-        tx.object(await getSignerCap(network)),
         tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
         tx.pure(
           Array.from(new TextEncoder().encode(nftDescription)),
           "vector<u8>"
         ),
         tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
+        tx.pure(user.address || process.env.DEFAULT_ADDRESS, "address"),
       ],
     });
+    console.log("object");
 
     const resData = await signer.signAndExecuteTransactionBlock({
       transactionBlock: tx,
@@ -102,6 +122,7 @@ bot.on("photo", async (msg) => {
         showBalanceChanges: true,
       },
     });
+    console.log(resData);
     let nftId = resData.effects.created[0].reference.objectId;
 
     const options = {
@@ -118,6 +139,7 @@ import { logicHandler } from "./utils/logicHandler.mjs";
 // Just to ping!
 // import {} from "./utils/signer";
 bot.on("text", async (msg) => {
+  let user = await getUser(msg);
   let isHandleLogic = await logicHandler(msg);
   if (isHandleLogic) {
     return;
@@ -127,6 +149,9 @@ bot.on("text", async (msg) => {
     `Welcome to InstaSui 🤖\nSend me a photo, and I will turn it into NFT on Sui Network.`
   );
   bot.sendPhoto(msg.chat.id, "https://i.imgur.com/1uTIVtl.jpg");
+  if (!user.address) {
+    bot.sendMessage(msg.chat.id, `Set your Sui Address by /setaddress`);
+  }
 });
 
 bot.on("sticker", async (msg) => {
