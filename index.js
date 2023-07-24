@@ -8,23 +8,13 @@ dotenv.config();
 
 import pkg from "imgur";
 const { ImgurClient } = pkg;
-const client = new ImgurClient({
+const imgurClient = new ImgurClient({
   clientId: process.env.IMGUR_CLIENT_ID,
   clientSecret: process.env.IMGUR_CLIENT_SECRET,
 });
-
-const TOKEN = process.env.BOT_TOKEN || "YOUR_TELEGRAM_BOT_TOKEN";
-const url = process.env.WEBHOOK_URL || "";
-const port = process.env.PORT;
-
-import TelegramBot from "node-telegram-bot-api";
 import express from "express";
-
-// No need to pass any parameters as we will handle the updates with Express
-const bot = new TelegramBot(TOKEN);
-
-// This informs the Telegram servers of the new webhook.
-// bot.setWebHook(`${url}/instaSuiBot`);
+const port = process.env.PORT;
+import { bot } from "./utils/bot.mjs";
 
 const app = express();
 import { Inputs, ObjectCallArg, TransactionBlock } from "@mysten/sui.js";
@@ -56,7 +46,7 @@ import { getInstaConfig } from "./utils/getInstaConfig.mjs";
 import { getSigner } from "./utils/signer.mjs";
 import { InstaPackage } from "./projectConfig.mjs";
 import { getViewerReplyMarkup } from "./utils/getViewerReplyMarkup.mjs";
-import { create } from "ipfs-http-client";
+import { create, urlSource } from "ipfs-http-client";
 
 const ipfsClient = create(process.env.IPFS_URL); // the default API address http://localhost:5001
 
@@ -64,18 +54,22 @@ bot.on("photo", async (msg) => {
   try {
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
-    // const helia = await createHelia(process.env.IPFS_URL);
-    let res = await client.upload({
+    // const file = await ipfsClient.add(urlSource(photoLink));
+    // let nftURL = `ipfs://${file.cid}`;
+
+    let res = await imgurClient.upload({
       image: photoLink,
-      type: url,
+      type: "url",
     });
+    let nftURL = res.data.link;
 
     let network = process.env.NETWORK || "testnet";
     let signer = await getSigner(network);
 
     let nftName = "Insta NFT Beta";
     let nftDescription = "Mint NFT from https://t.me/InstaSuiBot";
-    let nftURL = res.data.link;
+
+    // let nftURL = photoLink;
 
     const tx = new TransactionBlock();
 
@@ -115,9 +109,11 @@ bot.on("photo", async (msg) => {
   }
 });
 
+import { logicHandler } from "./utils/logicHandler.mjs";
 // Just to ping!
 // import {} from "./utils/signer";
-bot.on("text", (msg) => {
+bot.on("text", async (msg) => {
+  await logicHandler(msg);
   console.log(msg);
   bot.sendMessage(
     msg.chat.id,
