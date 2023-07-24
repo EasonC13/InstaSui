@@ -33,8 +33,13 @@ app.get(`/hello`, (req, res) => {
 });
 
 // Start Express Server
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Express server is listening on ${port}`);
+  const cmomands = [
+    { command: "setnetwork", description: "Select Sui Network" },
+    { command: "setaddress", description: "Change Address" },
+  ];
+  bot.setMyCommands(cmomands).then((resp) => {});
 });
 
 import { getSuiProvider } from "./utils/getSuiProvider.mjs";
@@ -113,8 +118,10 @@ import { logicHandler } from "./utils/logicHandler.mjs";
 // Just to ping!
 // import {} from "./utils/signer";
 bot.on("text", async (msg) => {
-  await logicHandler(msg);
-  console.log(msg);
+  let isHandleLogic = await logicHandler(msg);
+  if (isHandleLogic) {
+    return;
+  }
   bot.sendMessage(
     msg.chat.id,
     `Welcome to InstaSui 🤖\nSend me a photo, and I will turn it into NFT on Sui Network.`
