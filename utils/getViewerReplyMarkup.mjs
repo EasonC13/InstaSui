@@ -29,4 +29,4 @@ function getViewerReplyMarkup(nftId, network) {
     };
   }
 }
-exports.getViewerReplyMarkup = getViewerReplyMarkup;
+export { getViewerReplyMarkup };

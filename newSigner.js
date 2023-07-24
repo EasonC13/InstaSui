@@ -1,12 +1,21 @@
-let {
+// let {
+//   Ed25519Keypair,
+//   JsonRpcProvider,
+//   RawSigner,
+//   TransactionBlock,
+//   Ed25519KeypairData,
+// } = require("@mysten/sui.js");
+// const fs = require("fs");
+// const util = require("util");
+import {
   Ed25519Keypair,
   JsonRpcProvider,
   RawSigner,
   TransactionBlock,
   Ed25519KeypairData,
-} = require("@mysten/sui.js");
-const fs = require("fs");
-const util = require("util");
+} from "@mysten/sui.js";
+import fs from "fs";
+import util from "util";
 
 // Convert fs functions to promise-based functions
 const readFileAsync = util.promisify(fs.readFile);

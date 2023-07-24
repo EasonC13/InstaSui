@@ -5,4 +5,4 @@ InstaPackage["mainnet"] =
   "0xbbba13281a7b2091a979c81645967604412906dda7fbe5f07e195501a4b2b261";
 let a = {};
 
-exports.InstaPackage = InstaPackage;
+export { InstaPackage };

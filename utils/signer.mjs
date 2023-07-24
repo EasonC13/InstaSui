@@ -1,13 +1,7 @@
-let {
-  Ed25519Keypair,
-  JsonRpcProvider,
-  RawSigner,
-  TransactionBlock,
-  Ed25519KeypairData,
-} = require("@mysten/sui.js");
-const fs = require("fs");
-const util = require("util");
-const { getSuiProvider } = require("./getSuiProvider");
+import { Ed25519Keypair, JsonRpcProvider, RawSigner } from "@mysten/sui.js";
+import fs from "fs";
+import util from "util";
+import { getSuiProvider } from "./getSuiProvider.mjs";
 
 // Convert fs functions to promise-based functions
 const readFileAsync = util.promisify(fs.readFile);
@@ -52,7 +46,7 @@ let loadSecretKey = async () => {
 };
 loadSecretKey();
 
-exports.getSigner = async (network = "mainnet") => {
+let getSigner = async (network = "mainnet") => {
   if (data.secretKey) {
     await loadSecretKey();
   }
@@ -62,3 +56,5 @@ exports.getSigner = async (network = "mainnet") => {
   let signer = new RawSigner(keypair, provider);
   return signer;
 };
+
+export { getSigner };

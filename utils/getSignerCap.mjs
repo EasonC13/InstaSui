@@ -1,5 +1,5 @@
-let { Inputs } = require("@mysten/sui.js");
-const { getSuiProvider } = require("./getSuiProvider");
+import { Inputs } from "@mysten/sui.js";
+import { getSuiProvider } from "./getSuiProvider.mjs";
 
 let getSignerCap = async (network = "mainnet") => {
   let provider = getSuiProvider(network);
@@ -20,4 +20,4 @@ let getSignerCap = async (network = "mainnet") => {
     version: Number(SignerCap.data.version),
   });
 };
-exports.getSignerCap = getSignerCap;
+export { getSignerCap };
