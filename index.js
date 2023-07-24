@@ -113,7 +113,6 @@ bot.on("photo", async (msg) => {
         tx.pure(user.address || process.env.DEFAULT_ADDRESS, "address"),
       ],
     });
-    console.log("object");
 
     const resData = await signer.signAndExecuteTransactionBlock({
       transactionBlock: tx,
@@ -122,14 +121,24 @@ bot.on("photo", async (msg) => {
         showBalanceChanges: true,
       },
     });
-    console.log(resData);
     let nftId = resData.effects.created[0].reference.objectId;
+    let gasFee = Math.abs(Number(resData.balanceChanges[0].amount) / 10 ** 9);
+    let SuiPrice = await (
+      await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SUIUSDT")
+    ).json();
+    gasFee / SuiPrice.price;
 
     const options = {
       reply_markup: getViewerReplyMarkup(nftId, network),
       reply_to_message_id: msg.message_id,
     };
-    bot.sendMessage(msg.chat.id, "NFT Minted!", options);
+    bot.sendMessage(
+      msg.chat.id,
+      `NFT Minted!
+      The gas fee is ${gasFee.toFixed(4)} Sui
+      (~${(gasFee * SuiPrice.price).toFixed(4)} USD)`.replace(/  +/g, ""),
+      options
+    );
   } catch (e) {
     console.log(e);
   }
