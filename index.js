@@ -135,7 +135,7 @@ bot.on("photo", async (msg) => {
           )
         ).json()
       ).sui.jpy;
-      DisplayJPY = `(~=${gasFee * SuiPriceInJPY} JPY)`;
+      DisplayJPY = `(~=${(gasFee * SuiPriceInJPY).toFixed(4)} JPY)`;
     } catch (e) {}
 
     const options = {
