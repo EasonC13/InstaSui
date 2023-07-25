@@ -1,6 +1,9 @@
 # InstaSui
 
-## Try it now at [@InstaSuiBot](https://t.me/InstaSuiBot)
+### 👇👇👇👇👇👇👇👇👇👇👇👇
+### 👉 Try it now at [@InstaSuiBot](https://t.me/InstaSuiBot) 👈
+### 👆👆👆👆👆👆👆👆👆👆👆👆
+
 
 <img width="929" alt="Screenshot 2023-07-20 at 10 18 45 PM" src="https://github.com/EasonC13/InstaSui/assets/43432631/5fcce794-8d51-41c4-a103-c179cf0ddc7d">
 
