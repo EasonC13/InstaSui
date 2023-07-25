@@ -8,4 +8,5 @@
 
 <img width="694" alt="image" src="https://github.com/EasonC13/InstaSui/assets/43432631/6ae0bb1a-b249-4548-80e1-93741892357a" disabled>
 
-<img width="590" alt="Screenshot 2023-07-20 at 10 38 04 PM" src="https://github.com/EasonC13/InstaSui/assets/43432631/6c7ca7fd-a483-40f9-931e-207cc8053a62">
+
+<img width="786" alt="image" src="https://github.com/EasonC13/InstaSui/assets/43432631/d9ca55c7-8951-41b4-b4c1-3664337c76e6">
