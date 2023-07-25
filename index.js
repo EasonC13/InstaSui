@@ -161,12 +161,21 @@ bot.on("photo", async (msg) => {
         `Not Yet Set Address. Set your Sui Address by /setaddress`
       );
     }
+    await (await getDatabase()).collection("history").insertOne({
+      user,
+      nftURL,
+      network,
+      nftId,
+      gasFee,
+      txDigest: resData.digest,
+    });
   } catch (e) {
     console.log(e);
   }
 });
 
 import { logicHandler } from "./utils/logicHandler.mjs";
+import { getDatabase } from "./utils/db.mjs";
 // Just to ping!
 // import {} from "./utils/signer";
 bot.on("text", async (msg) => {
@@ -175,7 +184,7 @@ bot.on("text", async (msg) => {
   if (isHandleLogic) {
     return;
   }
-  bot.sendMessage(
+  let res = bot.sendMessage(
     msg.chat.id,
     `Welcome to InstaSui 🤖\nSend me a photo, and I will turn it into NFT on Sui Network.`
   );
