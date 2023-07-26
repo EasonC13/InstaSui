@@ -6,6 +6,16 @@ module insta::insta_management {
     use sui::event;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
+    use sui::balance::{Self, Balance};
+
+    /// A least gas fee.
+    const Minimum_gas: u64 = 100_000;
+
+    /// Trying to withdraw higher   pre_paid than stored.
+    const ENotEnough: u64 = 2;
+
     struct INSTA_MANAGEMENT has drop {}
 
     struct CreatorCap has key {
@@ -14,6 +24,7 @@ module insta::insta_management {
     struct SignerCap has key {
         id: UID,
         version: u64,
+        deposit: Deposited,
     }
     struct InstaConfig has key {
         id: UID,
@@ -23,11 +34,12 @@ module insta::insta_management {
         is_freezed: bool,
         rate_limit_per_hour: u64,
         version: u64,
+        pre_paid_supply: Balance<SUI>,
     }
     // TODO: Deposit
-    struct Deposited has key {
+    struct Deposited has key, store {
         id: UID,
-        amount: u64,
+        pre_paid: u64,
     }
     fun init(witness: INSTA_MANAGEMENT, ctx: &mut TxContext) {
         transfer::transfer(
@@ -44,6 +56,7 @@ module insta::insta_management {
             is_freezed: false,
             rate_limit_per_hour: 100,
             version: 0,
+            pre_paid_supply: balance::zero<SUI>(),
         };
         transfer::share_object(instaConfig);
     }
@@ -54,15 +67,36 @@ module insta::insta_management {
         transfer::transfer(
             SignerCap {
                 id: object::new(ctx),
-                version: instaConfig.version
+                version: instaConfig.version,
+                deposit: Deposited {id : object::new(ctx),  pre_paid: 0},
             }, 
             insta_signer
         );
     }
 
-    public entry fun add_deposit(){
-
+    fun add_pre_paid (instaConfig: InstaConfig, coin: Coin<SUI>, ctx: &mut TxContext){
+        balance::join(
+            &mut instaConfig.pre_paid_supply,
+            coin::into_balance(coin),
+        );
     }
+
+    public entry fun add_deposit(instaConfig: InstaConfig, signerCap: &mut SignerCap, coin: Coin<SUI>, ctx: &mut TxContext){
+        let amount = coin::value<SUI>(&coin);
+        signerCap.deposit.pre_paid = signerCap.deposit.pre_paid + amount;
+        add_pre_paid(instaConfig, coin, ctx);
+    }
+
+    fun withdraw_pre_paid(instaConfig: InstaConfig, amount:u64, ctx: &mut TxContext){
+        let insta_balance = balance::split(&mut instaConfig.pre_paid_supply,amount);
+        let coin = coin::from_balance(insta_balance, ctx);
+    }
+
+    public entry fun withdraw_paid(instaConfig: InstaConfig, signerCap: &mut SignerCap, amount: u64, ctx: &mut TxContext){
+        signerCap.deposit.pre_paid = signerCap.deposit.pre_paid - amount;
+        withdraw_pre_paid(instaConfig, amount, ctx);
+    }
+
 
     public entry fun mint(
         instaConfig: &InstaConfig,
@@ -70,12 +104,15 @@ module insta::insta_management {
         name: vector<u8>,
         description: vector<u8>,
         img_url: vector<u8>,
+        _gas_fee: u64,
         ctx: &mut TxContext
     ) {
         assert!(_signerCap.version == instaConfig.version, 0);
         assert!(instaConfig.is_freezed == false, 0);
-        if(instaConfig.is_request_withdraw){
+        assert!(_signerCap.deposit.pre_paid < Minimum_gas, ENotEnough);
+        if(instaConfig.is_request_withdraw&& _gas_fee > 0){
             // TODO: Process Withdraw
+
         };
         insta_nft::mint(
             name,
@@ -87,16 +124,5 @@ module insta::insta_management {
         //TODO: process payment
         
     }
-    // public entry fun mint_test(
-    //     ctx: &mut TxContext
-    // ) {
-    //     insta_nft::mint(
-    //         b"Insta NFT",
-    //         b"Insta NFT",
-    //         b"https://thispersondoesnotexist.com",
-    //         tx_context::sender(ctx),
-    //         ctx
-    //     );
-    //     //TODO: process payment
-    // }
+
 }

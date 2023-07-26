@@ -3,3 +3,5 @@ build
 node_modules
 .env
 host.secret
+Yarn.lock
+.DS_Store
