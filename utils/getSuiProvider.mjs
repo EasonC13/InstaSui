@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-let { JsonRpcProvider, Connection } = require("@mysten/sui.js");
-let dotenv = require("dotenv");
+import { JsonRpcProvider, Connection } from "@mysten/sui.js";
+import dotenv from "dotenv";
+
 dotenv.config();
 
 let getSuiProvider = (network = "mainnet") => {
@@ -21,4 +22,5 @@ let getSuiProvider = (network = "mainnet") => {
     return new JsonRpcProvider(connection);
   }
 };
-exports.getSuiProvider = getSuiProvider;
+
+export { getSuiProvider };

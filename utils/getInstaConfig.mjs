@@ -1,4 +1,4 @@
-let { Inputs } = require("@mysten/sui.js");
+import { Inputs } from "@mysten/sui.js";
 
 let getInstaConfig = async (network = "mainnet") => {
   if (network == "mainnet") {
@@ -17,4 +17,4 @@ let getInstaConfig = async (network = "mainnet") => {
     });
   }
 };
-exports.getInstaConfig = getInstaConfig;
+export { getInstaConfig };
