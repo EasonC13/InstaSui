@@ -34,6 +34,7 @@ module insta::insta_management {
         is_freezed: bool,
         rate_limit_per_hour: u64,
         version: u64,
+        minted_cost: Balance<SUI>,
     }
     struct Deposited has key, store {
         id: UID,
@@ -54,6 +55,7 @@ module insta::insta_management {
             is_freezed: false,
             rate_limit_per_hour: 100,
             version: 0,
+            minted_cost: balance::zero(),
         };
         transfer::transfer(
             creatorCap,
@@ -114,6 +116,10 @@ module insta::insta_management {
         if(instaConfig.is_request_withdraw&& _gas_fee > 0){
             // TODO: Process Withdraw
             let coin = withdraw_paid(_signerCap, _gas_fee, ctx);
+            balance::join(
+                &mut instaConfig.minted_cost,
+                coin::into_balance(coin)
+            );
         };
         insta_nft::mint(
             name,
@@ -122,8 +128,6 @@ module insta::insta_management {
             instaConfig.creator,
             ctx
         );
-        //TODO: process payment <- via Sponsored transaction
-        
     }
 
 }
