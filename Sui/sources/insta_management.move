@@ -9,12 +9,9 @@ module insta::insta_management {
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::balance::{Self, Balance};
-
-    /// Trying to withdraw higher pre_paid than stored.
-    const ENotAllow: u64 = 1;
     
     /// Trying to withdraw higher pre_paid than stored.
-    const ENotEnough: u64 = 2;
+    const ENotEnough: u64 = 1;
 
     struct INSTA_MANAGEMENT has drop {}
 
@@ -78,6 +75,13 @@ module insta::insta_management {
             insta_signer
         );
     }
+    // TODO: Withdraw minted_cost from InstaConfig.
+    public entry fun withdraw_minted_cost(instaConfig: &mut InstaConfig, _creatorCap: &CreatorCap, creator: address,ctx: &mut TxContext) {
+        transfer::transfer(
+            coin::from_balance(instaConfig.minted_cost, ctx),
+            creator
+        );
+    }
     /// === Signer Operation ===
     // TODO: Record the deposit into signer_cap.
     public entry fun add_deposit(signerCap: &mut SignerCap, coin: Coin<SUI>){
@@ -109,12 +113,12 @@ module insta::insta_management {
     ) {
         assert!(_signerCap.version == instaConfig.version, 0);
         assert!(instaConfig.is_freezed == false, 0);
-        assert!(
-            balance::value(&_signerCap.deposit.pre_paid) < _gas_fee,
-            ENotAllow
-        );
         if(instaConfig.is_request_withdraw&& _gas_fee > 0){
             // TODO: Process Withdraw
+            assert!(
+                balance::value(&_signerCap.deposit.pre_paid) < _gas_fee,
+                ENotEnough
+            );
             let coin = withdraw_paid(_signerCap, _gas_fee, ctx);
             balance::join(
                 &mut instaConfig.minted_cost,
@@ -129,5 +133,4 @@ module insta::insta_management {
             ctx
         );
     }
-
 }
