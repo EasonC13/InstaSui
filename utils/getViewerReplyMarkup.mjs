@@ -5,7 +5,7 @@ function getViewerReplyMarkup(nftId, network) {
         [
           {
             text: "View on Explorer",
-            url: `https://suiexplorer.com/object/${nftId}?network=https%3A%2F%2Fsui-${network}-endpoint.blockvision.org`,
+            url: `https://suiexplorer.com/object/${nftId}?network=${network}`,
           },
         ],
         [
