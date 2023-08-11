@@ -88,7 +88,7 @@ async function setAddress(signer, msg, user) {
   } catch (e) {
     bot.sendMessage(
       msg.chat.id,
-      `Invaalid Sui Address, please try again.\n\n/setaddress <sui address>\n\nFor Example: \`/setaddress 0x04d626ce8938318165fab01491095329aee67fd017a4a17fe2c981b8a9a569cc\``,
+      `Invalid Sui Address, please try again.\n\n/setaddress <sui address>\n\nFor Example: \`/setaddress 0x04d626ce8938318165fab01491095329aee67fd017a4a17fe2c981b8a9a569cc\``,
       options
     );
   }
