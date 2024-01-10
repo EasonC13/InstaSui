@@ -54,15 +54,23 @@ import { InstaPackage } from "./projectConfig.mjs";
 import { getViewerReplyMarkup } from "./utils/getViewerReplyMarkup.mjs";
 import { create, urlSource } from "ipfs-http-client";
 import { getUser } from "./utils/getUser.mjs";
+import { extractTitleAndDescription } from "./utils/extractTitleAndDescription.mjs";
 
 const ipfsClient = create(process.env.IPFS_URL); // the default API address http://localhost:5001
 
 bot.on("photo", async (msg) => {
+  if (msg.photo.length === 0) {
+    return;
+  }
   try {
     bot.sendChatAction(msg.chat.id, "typing");
     let user = await getUser(msg);
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
+    let { name, description } = extractTitleAndDescription(msg.caption);
+    let nftName = name || "Insta NFT Beta";
+    let nftDescription = description || ""; //"Mint NFT from https://t.me/InstaSuiBot";
+
     // const file = await ipfsClient.add(urlSource(photoLink));
     // let nftURL = `ipfs://${file.cid}`;
 
@@ -76,9 +84,6 @@ bot.on("photo", async (msg) => {
 
     let network = user.network || process.env.NETWORK || "testnet";
     let signer = await getSigner(network);
-
-    let nftName = "Insta NFT Beta";
-    let nftDescription = "Mint NFT from https://t.me/InstaSuiBot";
 
     // let nftURL = photoLink;
 
