@@ -6,6 +6,10 @@ export async function logicHandler(msg) {
   msg.from.id;
   let user = await getUser(msg);
   let signer = await getSigner(process.env.NETWORK);
+  if (msg.text.length == 66 || msg.text.endsWith(".sui")) {
+    await setAddress(signer, msg, user);
+    return true;
+  }
   if (msg.text.toLowerCase().startsWith("/setaddress")) {
     msg.text = msg.text.toLowerCase().replace("/setaddress", "").trim();
     await setAddress(signer, msg, user);
@@ -67,7 +71,13 @@ async function setAddress(signer, msg, user) {
     reply_to_message_id: msg.message_id,
     parse_mode: "Markdown",
   };
+
   try {
+    if (msg.text.endsWith(".sui")) {
+      let result = await signer.provider.resolveNameServiceAddress({
+        name: msg.text,
+      });
+    }
     let res = await signer.provider.getAllCoins({
       owner: msg.text,
     });
@@ -84,7 +94,7 @@ async function setAddress(signer, msg, user) {
         },
       }
     );
-    bot.sendMessage(msg.chat.id, `Address set`, options);
+    bot.sendMessage(msg.chat.id, `Address set to ${msg.text}`, options);
   } catch (e) {
     bot.sendMessage(
       msg.chat.id,

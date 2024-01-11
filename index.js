@@ -65,6 +65,13 @@ bot.on("photo", async (msg) => {
   try {
     bot.sendChatAction(msg.chat.id, "typing");
     let user = await getUser(msg);
+    if (!user.address) {
+      bot.sendMessage(
+        msg.chat.id,
+        `Please first set your Sui Address by /setaddress`
+      );
+      return;
+    }
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
     let { name, description } = extractTitleAndDescription(msg.caption);
@@ -136,17 +143,17 @@ bot.on("photo", async (msg) => {
     let SuiPrice = await (
       await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SUIUSDT")
     ).json();
-    let DisplayJPY;
-    try {
-      let SuiPriceInJPY = (
-        await (
-          await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=sui&vs_currencies=JPY"
-          )
-        ).json()
-      ).sui.jpy;
-      DisplayJPY = `(~=${(gasFee * SuiPriceInJPY).toFixed(4)} JPY)`;
-    } catch (e) {}
+    let DisplayJPY = "";
+    // try {
+    //   let SuiPriceInJPY = (
+    //     await (
+    //       await fetch(
+    //         "https://api.coingecko.com/api/v3/simple/price?ids=sui&vs_currencies=JPY"
+    //       )
+    //     ).json()
+    //   ).sui.jpy;
+    //   DisplayJPY = `(~=${(gasFee * SuiPriceInJPY).toFixed(4)} JPY)`;
+    // } catch (e) {}
 
     const options = {
       reply_markup: getViewerReplyMarkup(nftId, network),
