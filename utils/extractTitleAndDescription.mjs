@@ -30,5 +30,15 @@ export function extractTitleAndDescription(input) {
     result.name = lines[0];
   }
 
+  // Check if the last line can be formatted as a number
+  let lastLine = lines[lines.length - 1];
+  let lastLineAsNumber = parseInt(lastLine);
+  if (!isNaN(lastLineAsNumber)) {
+    result.amount = lastLineAsNumber;
+    result.description = lines.slice(1, -1).join(" ");
+  } else {
+    result.amount = 1; // Default to 1 if the last line is not a valid number
+  }
+
   return result;
 }

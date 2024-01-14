@@ -74,7 +74,7 @@ bot.on("photo", async (msg) => {
     }
     let photo = msg.photo[msg.photo.length - 1];
     let photoLink = await bot.getFileLink(photo.file_id);
-    let { name, description } = extractTitleAndDescription(msg.caption);
+    let { name, description, amount } = extractTitleAndDescription(msg.caption);
     let nftName = name || "Insta NFT Beta";
     let nftDescription = description || ""; //"Mint NFT from https://t.me/InstaSuiBot";
 
@@ -115,19 +115,21 @@ bot.on("photo", async (msg) => {
       //   ],
       // });
     }
-    tx.moveCall({
-      target: `${InstaPackage[network]}::insta_nft::mint`,
-      // typeArguments: [coin_type],
-      arguments: [
-        tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
-        tx.pure(
-          Array.from(new TextEncoder().encode(nftDescription)),
-          "vector<u8>"
-        ),
-        tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
-        tx.pure(user.address || process.env.DEFAULT_ADDRESS, "address"),
-      ],
-    });
+    for (let i = 0; i < amount; i++) {
+      tx.moveCall({
+        target: `${InstaPackage[network]}::insta_nft::mint`,
+        // typeArguments: [coin_type],
+        arguments: [
+          tx.pure(Array.from(new TextEncoder().encode(nftName)), "vector<u8>"),
+          tx.pure(
+            Array.from(new TextEncoder().encode(nftDescription)),
+            "vector<u8>"
+          ),
+          tx.pure(Array.from(new TextEncoder().encode(nftURL)), "vector<u8>"),
+          tx.pure(user.address || process.env.DEFAULT_ADDRESS, "address"),
+        ],
+      });
+    }
 
     bot.sendChatAction(msg.chat.id, "typing");
     const resData = await signer.signAndExecuteTransactionBlock({
